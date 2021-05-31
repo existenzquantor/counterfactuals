@@ -44,6 +44,17 @@ rule_necc(Branch, [p(J, A)]) :-
     member(r(I, _, J), Branch),
     \+ member(p(J, A), Branch).
 
+rule_notcounterfactual(Branch, [r(I, A, K), p(K, not(B))]) :-
+    member(p(I, not(c(A, B))), Branch),
+    \+ (member(r(I, A, J), Branch), member(p(J, not(B)), Branch)),
+    next_world_id(Branch, K).
+rule_notcounterfactual(Branch, [p(I, not(A))]) :-
+    member(p(I, not(c(A, _))), Branch),
+    \+ member(p(I, not(A)), Branch).
+rule_notcounterfactual(Branch, [p(I, not(B))]) :-
+    member(p(I, not(c(_, B))), Branch),
+    \+ member(p(I, not(B)), Branch).
+
 rule_counterfactual(Branch, [p(J, B)]) :-
     member(p(I, c(A, B)), Branch),
     member(r(I, A, J), Branch),
@@ -58,6 +69,17 @@ rule_counterfactual(Branch, [r(I, A, J)]) :-
     member(p(I, c(A, _)), Branch),
     \+ member(r(I, A, _), Branch),
     next_world_id(Branch, J).
+
+rule_notsemifactual(Branch, [r(I, A, K), p(K, not(B))]) :-
+    member(p(I, not(s(A, B))), Branch),
+    \+ (member(r(I, A, J), Branch), member(p(J, not(B)), Branch)),
+    next_world_id(Branch, K).
+rule_notsemifactual(Branch, [p(I, not(A))]) :-
+    member(p(I, not(s(A, _))), Branch),
+    \+ member(p(I, not(A)), Branch).
+rule_notsemifactual(Branch, [p(I, B)]) :-
+    member(p(I, not(s(_, B))), Branch),
+    \+ member(p(I, B), Branch).
 
 rule_semifactual(Branch, [p(J, B)]) :-
     member(p(I, s(A, B)), Branch),
@@ -99,7 +121,15 @@ expand(Branch, Result) :-
     union(Branch, New, BranchNew),
     expand(BranchNew, Result).
 expand(Branch, Result) :-
+    rule_notcounterfactual(Branch, New),!,
+    union(Branch, New, BranchNew),
+    expand(BranchNew, Result).
+expand(Branch, Result) :-
     rule_semifactual(Branch, New),!,
+    union(Branch, New, BranchNew),
+    expand(BranchNew, Result).
+expand(Branch, Result) :-
+    rule_notsemifactual(Branch, New),!,
     union(Branch, New, BranchNew),
     expand(BranchNew, Result).
 expand(Branch, Result) :-
