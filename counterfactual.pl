@@ -104,6 +104,10 @@ rule_impl(Branch, [p(I, or(not(A), B))]) :-
     member(p(I, impl(A, B)), Branch),
     \+ member(p(I, or(not(A), B)), Branch).
 
+rule_biimpl(Branch, [p(I, and(impl(A, B), impl(B, A)))]) :-
+    member(p(I, biimpl(A, B)), Branch),
+    \+ member(p(I, and(impl(A, B), impl(B, A))), Branch).
+
 expand(Branch, Result) :-
     rule_neg(Branch, New),!,
     union(Branch, New, BranchNew),
@@ -142,6 +146,10 @@ expand(Branch, Result) :-
     expand(BranchNew, Result).
 expand(Branch, Result) :-
     rule_impl(Branch, New),!,
+    union(Branch, New, BranchNew),
+    expand(BranchNew, Result).
+expand(Branch, Result) :-
+    rule_biimpl(Branch, New),!,
     union(Branch, New, BranchNew),
     expand(BranchNew, Result).
 expand(Branch, Result) :-
